@@ -73,12 +73,11 @@ class RegisterActivity : AppCompatActivity() {
                                     val myToast = Toast.makeText(applicationContext,"INSERTED", Toast.LENGTH_SHORT)
                                     myToast.show()
                                 }
-                                //println(response.data()?.data())
-                              /*  val myToast = Toast.makeText(applicationContext,"Successfully saved!" , Toast.LENGTH_SHORT)
-                                myToast.show()
-                                val intent = Intent(applicationContext,GraphQLDBActivity::class.java).apply {
-                                }
-                                startActivity(intent)*/
+                              /*
+                                    val intent = Intent(applicationContext,GraphQLDBActivity::class.java).apply {
+                                    }
+                                    startActivity(intent)
+                                */
                             } catch (e: JSONException) {
                                 e.printStackTrace()
                             }

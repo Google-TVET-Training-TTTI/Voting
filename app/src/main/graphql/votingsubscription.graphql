@@ -1,0 +1,5 @@
+subscription newUser($id: String) {
+data: newUser(id: $id) {
+id
+}
+}

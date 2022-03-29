@@ -1889,11 +1889,11 @@
         "description": "",
         "fields": [
           {
-            "name": "getDoctorsChatRequest",
+            "name": "newUser",
             "description": "",
             "args": [
               {
-                "name": "doctorId",
+                "name": "id",
                 "description": "",
                 "type": {
                   "kind": "SCALAR",
@@ -1905,7 +1905,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "ChatRequest",
+              "name": "User",
               "ofType": null
             },
             "isDeprecated": false,
