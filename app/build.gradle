@@ -56,4 +56,5 @@ dependencies {
 
     implementation 'com.apollographql.apollo:apollo-runtime:2.5.11'
     implementation 'com.apollographql.apollo:apollo-android-support:2.5.11'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 }
