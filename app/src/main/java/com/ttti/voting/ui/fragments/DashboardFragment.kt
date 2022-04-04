@@ -2,46 +2,34 @@ package com.ttti.voting.ui.fragments
 
 
 //import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
-import android.content.ContentValues.TAG
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SeekBar
-import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.ApolloSubscriptionCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.subscription.SubscriptionConnectionParams
 import com.apollographql.apollo.subscription.WebSocketSubscriptionTransport
+import com.coreict.models.GetVotesQuery
 import com.coreict.models.NewUserSubscription
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.AxisBase
-import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.github.mikephil.charting.formatter.ValueFormatter
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
-import com.github.mikephil.charting.model.GradientColor
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.ttti.voting.R
 import okhttp3.OkHttpClient
+import org.json.JSONException
 import java.util.concurrent.TimeUnit
-
-class MyXAxisFormatter : ValueFormatter() {
-    private val days = arrayOf("Mo", "Tu")
-    override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-        return days.getOrNull(value.toInt()) ?: value.toString()
-    }
-}
+import java.util.stream.Collectors
 
 
 class DashboardFragment : Fragment() {
@@ -50,6 +38,7 @@ class DashboardFragment : Fragment() {
     private var WS_URL= ""
     private var chart: BarChart? = null
     private var scoreList = ArrayList<Score>()
+    private lateinit var client: ApolloClient
 
     fun createSubscriptionApolloClient(): ApolloClient {
         val okHttpClient = OkHttpClient
@@ -66,16 +55,6 @@ class DashboardFragment : Fragment() {
             .subscriptionTransportFactory(subscriptionTransportFactory)
             .build()
     }
-
-    private fun getScoreList(): ArrayList<Score> {
-        scoreList.add(Score("John", 56))
-        scoreList.add(Score("Rey", 75))
-        scoreList.add(Score("Steve", 85))
-        scoreList.add(Score("Kevin", 45))
-        scoreList.add(Score("Jeff", 63))
-        return scoreList
-    }
-
     inner class MyAxisFormatter : IndexAxisValueFormatter() {
         override fun getAxisLabel(value: Float, axis: AxisBase?): String {
             val index = value.toInt()
@@ -120,34 +99,67 @@ class DashboardFragment : Fragment() {
                 Log.d("Voting App", "Dis-connected from WS" )
             }
         })
+        /////////////////////////////////////////////////////////////////////////get votes from graph
+        client.query(
+            GetVotesQuery
+                .builder()
+                .build()
+         )
+            .enqueue(object : ApolloCall.Callback<GetVotesQuery.Data>() {
+                override fun onFailure(e: ApolloException) {
+                    Log.e("DEBUG",e.message.toString())
+                }
+                override fun onResponse(response: Response<GetVotesQuery.Data>) {
+                    getActivity()?.runOnUiThread {
+                        try {
 
+                            val dataCount : Int = response.data()?.data()?.nodes()?.count() ?:0
+                            if(dataCount > 0){
+                                for (i in 0 until dataCount) {
+                                    var candidateName : String =
+                                        response?.data()?.data()?.nodes()?.get(i)?.candidate()?.firstName().toString()
+                                    var candidateVotes : Int = response?.data()?.data()?.nodes()?.get(i)?.votes()!!
+                                    scoreList.add(Score(candidateName, candidateVotes))
 
-        chart = root.findViewById(R.id.chart1) as BarChart
-        val entries: ArrayList<BarEntry> = ArrayList()
-        scoreList = getScoreList()
-        for (i in scoreList.indices) {
-            val score = scoreList[i]
-            entries.add(BarEntry(i.toFloat(), score.score.toFloat()))
-        }
-        val barDataSet = BarDataSet(entries, "")
-        barDataSet.setColors(*ColorTemplate.COLORFUL_COLORS)
-        val data = BarData(barDataSet)
-        chart!!.data = data
-        chart?.axisLeft?.setDrawGridLines(true)
-        chart?.xAxis?.setDrawGridLines(true)
-        chart?.xAxis?.setDrawAxisLine(false)
-        val xAxis: XAxis = chart!!.xAxis
-        xAxis.position = XAxis.XAxisPosition.BOTH_SIDED
-        xAxis.valueFormatter = MyAxisFormatter()
-        xAxis.setDrawLabels(true)
-        xAxis.granularity = 1f
-        xAxis.labelRotationAngle = +90f
-        chart?.axisRight?.isEnabled = true
-        chart?.legend?.isEnabled = false
-        chart?.description?.isEnabled = false
-        chart?.animateY(3000)
-        //draw chart
-        chart?.invalidate()
+                                }
+                                scoreList = scoreList.stream().distinct().collect(Collectors.toList()) as ArrayList
+
+                                ////////////////draw graph
+                                chart = root.findViewById(R.id.chart1) as BarChart
+                                val entries: ArrayList<BarEntry> = ArrayList()
+                                for (i in scoreList.indices) {
+                                    val score = scoreList[i]
+                                    entries.add(BarEntry(i.toFloat(), score.score.toFloat()))
+                                }
+                                val barDataSet = BarDataSet(entries, "")
+                                barDataSet.setColors(*ColorTemplate.COLORFUL_COLORS)
+                                val data = BarData(barDataSet)
+                                chart!!.data = data
+                                chart?.axisLeft?.setDrawGridLines(true)
+                                chart?.xAxis?.setDrawGridLines(true)
+                                chart?.xAxis?.setDrawAxisLine(false)
+                                val xAxis: XAxis = chart!!.xAxis
+                                xAxis.position = XAxis.XAxisPosition.BOTH_SIDED
+                                xAxis.valueFormatter = MyAxisFormatter()
+                                xAxis.setDrawLabels(true)
+                                xAxis.granularity = 1f
+                                xAxis.labelRotationAngle = +90f
+                                chart?.axisRight?.isEnabled = true
+                                chart?.legend?.isEnabled = false
+                                chart?.description?.isEnabled = false
+                                chart?.animateY(3000)
+                                chart?.invalidate()
+                                ////////////////draw graph
+                            }else{
+                              //no data fetched!
+                            }
+                        } catch (e: JSONException) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            })
+        //////////////////////////////////////////////////////////////////////////////////
         return root
     }
 }
