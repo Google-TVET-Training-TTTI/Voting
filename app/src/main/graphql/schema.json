@@ -2390,7 +2390,7 @@
         "description": "",
         "fields": [
           {
-            "name": "newUser",
+            "name": "newVote",
             "description": "",
             "args": [
               {
@@ -2406,7 +2406,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "User",
+              "name": "Votes",
               "ofType": null
             },
             "isDeprecated": false,

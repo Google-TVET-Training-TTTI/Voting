@@ -1,7 +1,9 @@
 package com.ttti.voting.ui.fragments
 
 
-//import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,15 +18,20 @@ import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.subscription.SubscriptionConnectionParams
 import com.apollographql.apollo.subscription.WebSocketSubscriptionTransport
 import com.coreict.models.GetVotesQuery
-import com.coreict.models.NewUserSubscription
+import com.coreict.models.NewVoteSubscription
+import com.github.mikephil.charting.animation.ChartAnimator
+import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.AxisBase
+import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.formatter.PercentFormatter
+import com.github.mikephil.charting.renderer.PieChartRenderer
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.github.mikephil.charting.utils.ViewPortHandler
 import com.ttti.voting.R
 import okhttp3.OkHttpClient
 import org.json.JSONException
@@ -37,8 +44,9 @@ class DashboardFragment : Fragment() {
     private var BASE_URL = ""
     private var WS_URL= ""
     private var chart: BarChart? = null
+    private var piechart: PieChart? = null
     private var scoreList = ArrayList<Score>()
-    private lateinit var client: ApolloClient
+
 
     fun createSubscriptionApolloClient(): ApolloClient {
         val okHttpClient = OkHttpClient
@@ -76,15 +84,100 @@ class DashboardFragment : Fragment() {
         val activity = context
         BASE_URL = getString(R.string.graphql_server)
         WS_URL = getString(R.string.graphql_server_ws)
+
+        chart = root.findViewById(R.id.barchart) as BarChart
+        chart?.axisLeft?.setDrawGridLines(true)
+        chart?.xAxis?.setDrawGridLines(true)
+        chart?.xAxis?.setDrawAxisLine(false)
+        val xAxis: XAxis = chart!!.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTH_SIDED
+        xAxis.valueFormatter = MyAxisFormatter()
+        xAxis.setDrawLabels(true)
+        xAxis.granularity = 1f
+        xAxis.labelRotationAngle = +90f
+        chart?.axisRight?.isEnabled = true
+        chart?.legend?.isEnabled = false
+        chart?.description?.isEnabled = false
+        chart?.animateY(3000)
+        chart?.invalidate()
+
+
+
+//////////////pie chart
+        piechart = root.findViewById(R.id.piechart) as PieChart
+        piechart?.setUsePercentValues(true)
+        val dataEntries = ArrayList<PieEntry>()
+        dataEntries.add(PieEntry(72f, "Registered Voters"))
+        dataEntries.add(PieEntry(26f, "Voted"))
+
+        val colors: ArrayList<Int> = ArrayList()
+        colors.add(Color.parseColor("#4DD0E1"))
+        colors.add(Color.parseColor("#FFF176"))
+
+
+        val dataSet = PieDataSet(dataEntries, "")
+        val data = PieData(dataSet)
+
+        // In Percentage
+        data.setValueFormatter(PercentFormatter())
+        dataSet.sliceSpace = 10f
+        dataSet.colors = colors
+        piechart?.data = data
+        data.setValueTextSize(15f)
+        piechart?.setExtraOffsets(5f, 10f, 5f, 5f)
+        piechart?.animateY(7000, Easing.EaseInOutQuad)
+
+        //create hole in center
+        piechart?.holeRadius = 58f
+        piechart?.transparentCircleRadius = 401f
+        piechart?.isDrawHoleEnabled = true
+        piechart?.setHoleColor(Color.WHITE)
+
+        //add text in center
+        piechart?.setDrawCenterText(true);
+        piechart?.centerText = "Voters"
+        piechart?.invalidate()
+
+/////////////////pie chart
+
+
         val client = createSubscriptionApolloClient()
         val call = client.subscribe(
-            NewUserSubscription
+            NewVoteSubscription
             .builder()
             .build()
         )
-        call?.execute(object: ApolloSubscriptionCall.Callback<NewUserSubscription.Data> {
-            override fun onResponse(response: Response<NewUserSubscription.Data>) {
-                Log.d("Voting App", response?.data()?.data()?.id().toString())
+        call?.execute(object: ApolloSubscriptionCall.Callback<NewVoteSubscription.Data> {
+            override fun onResponse(response: Response<NewVoteSubscription.Data>) {
+           getActivity()?.runOnUiThread(java.lang.Runnable {
+            try{
+                val candidate : String = response?.data()?.data()?.candidate()?.firstName().toString()
+                val votes : Int = response?.data()?.data()?.votes()!!
+                scoreList.add(Score(candidate, votes))
+                for (i in scoreList.indices) {
+                    if(scoreList[i].name == candidate ){
+                        scoreList.remove(scoreList[i])
+                        scoreList.add(Score(candidate, votes))
+                    }
+                }
+                scoreList = scoreList.stream().distinct().collect(Collectors.toList()) as ArrayList
+                Log.d("Voting App", scoreList.toString())
+                val entries: ArrayList<BarEntry> = ArrayList()
+                for (i in scoreList.indices) {
+                    entries.add(BarEntry(i.toFloat(), scoreList[i].score.toFloat()))
+                }
+                val barDataSet = BarDataSet(entries, "")
+                barDataSet.setColors(*ColorTemplate.COLORFUL_COLORS)
+                val data = BarData(barDataSet)
+                chart?.data = data
+                chart?.getData()?.notifyDataChanged();
+                chart?.notifyDataSetChanged();
+                chart?.invalidate()
+
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            })
             }
             override fun onCompleted() {
                 Log.d("Voting App", "Completed!")
@@ -100,6 +193,8 @@ class DashboardFragment : Fragment() {
             }
         })
         /////////////////////////////////////////////////////////////////////////get votes from graph
+
+
         client.query(
             GetVotesQuery
                 .builder()
@@ -112,7 +207,6 @@ class DashboardFragment : Fragment() {
                 override fun onResponse(response: Response<GetVotesQuery.Data>) {
                     getActivity()?.runOnUiThread {
                         try {
-
                             val dataCount : Int = response.data()?.data()?.nodes()?.count() ?:0
                             if(dataCount > 0){
                                 for (i in 0 until dataCount) {
@@ -120,12 +214,9 @@ class DashboardFragment : Fragment() {
                                         response?.data()?.data()?.nodes()?.get(i)?.candidate()?.firstName().toString()
                                     var candidateVotes : Int = response?.data()?.data()?.nodes()?.get(i)?.votes()!!
                                     scoreList.add(Score(candidateName, candidateVotes))
-
                                 }
                                 scoreList = scoreList.stream().distinct().collect(Collectors.toList()) as ArrayList
-
                                 ////////////////draw graph
-                                chart = root.findViewById(R.id.chart1) as BarChart
                                 val entries: ArrayList<BarEntry> = ArrayList()
                                 for (i in scoreList.indices) {
                                     val score = scoreList[i]
@@ -135,20 +226,6 @@ class DashboardFragment : Fragment() {
                                 barDataSet.setColors(*ColorTemplate.COLORFUL_COLORS)
                                 val data = BarData(barDataSet)
                                 chart!!.data = data
-                                chart?.axisLeft?.setDrawGridLines(true)
-                                chart?.xAxis?.setDrawGridLines(true)
-                                chart?.xAxis?.setDrawAxisLine(false)
-                                val xAxis: XAxis = chart!!.xAxis
-                                xAxis.position = XAxis.XAxisPosition.BOTH_SIDED
-                                xAxis.valueFormatter = MyAxisFormatter()
-                                xAxis.setDrawLabels(true)
-                                xAxis.granularity = 1f
-                                xAxis.labelRotationAngle = +90f
-                                chart?.axisRight?.isEnabled = true
-                                chart?.legend?.isEnabled = false
-                                chart?.description?.isEnabled = false
-                                chart?.animateY(3000)
-                                chart?.invalidate()
                                 ////////////////draw graph
                             }else{
                               //no data fetched!
@@ -168,6 +245,7 @@ data class Score(
     val name:String,
     val score: Int,
 )
+
 
 
 // https://intensecoder.com/bar-chart-tutorial-in-android-using-kotlin/
