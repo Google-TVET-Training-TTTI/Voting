@@ -10,4 +10,8 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@drawable/card_look</item>
     </style>
+
+    <style name="TreeNodeStyleCustom">
+        <item name="android:paddingLeft">20dp</item>
+    </style>
 </resources>
