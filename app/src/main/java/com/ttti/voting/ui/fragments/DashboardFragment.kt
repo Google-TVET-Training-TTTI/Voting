@@ -161,7 +161,7 @@ class DashboardFragment : Fragment() {
                     }
                 }
                 scoreList = scoreList.stream().distinct().collect(Collectors.toList()) as ArrayList
-                Log.d("Voting App", scoreList.toString())
+                //Log.d("Voting App", scoreList.toString())
                 val entries: ArrayList<BarEntry> = ArrayList()
                 for (i in scoreList.indices) {
                     entries.add(BarEntry(i.toFloat(), scoreList[i].score.toFloat()))

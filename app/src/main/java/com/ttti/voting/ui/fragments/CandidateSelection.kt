@@ -1,15 +1,20 @@
 package com.ttti.voting.ui.fragments
 
+
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.ttti.voting.R
 import com.ttti.voting.ui.holder.AndroidTreeView
 import com.ttti.voting.ui.holder.IconTreeItemHolder
 import com.ttti.voting.ui.holder.TreeNode
+import com.ttti.voting.ui.holder.TreeNode.BaseNodeViewHolder
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -52,7 +57,7 @@ class CandidateSelection : Fragment() {
     ): View? {
         val rootView: View = inflater.inflate(R.layout.fragment_candidate_selection, null, false)
 
-        val containerView = rootView.findViewById<View>(R.id.container) as ViewGroup
+        val containerView = rootView.findViewById<View>(R.id.treeviewcontainer) as ViewGroup
        // statusBar = rootView.findViewById<View>(R.id.status_bar) as TextView
 
 
@@ -64,15 +69,25 @@ class CandidateSelection : Fragment() {
         val category3Root = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person, "Senator"))
         val category4Root = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person, "MCA"))
 
-        val candidate1 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_thumbs_down, "President Candidate 1"))
-        val candidate2 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_thumbs_down, "President Candidate 2"))
+        val candidate1 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "President Candidate 1"))
+        val candidate2 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "President Candidate 2"))
         category1Root.addChildren(candidate1,candidate2)
 
 
-        val candidate3 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_thumbs_down, "Governor 1"))
-        val candidate4 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_thumbs_down, "Governor 2"))
-        val candidate5 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_thumbs_down, "Governor 3"))
+        val candidate3 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "Governor 1"))
+        val candidate4 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "Governor 2"))
+        val candidate5 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "Governor 3"))
         category2Root.addChildren(candidate3,candidate4,candidate5)
+
+
+        val candidate6 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "Senator 1"))
+        val candidate7 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "Senator 2"))
+        category3Root.addChildren(candidate6,candidate7)
+
+
+        val candidate8 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "MCA 1"))
+        val candidate9 = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person_outline, "MCA 2"))
+        category4Root.addChildren(candidate8,candidate9)
 
         /*val myDocuments = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person, "Governor Category"))
         val downloads = TreeNode(IconTreeItemHolder.IconTreeItem(R.string.ic_person, "Senator"))
@@ -90,6 +105,40 @@ class CandidateSelection : Fragment() {
         tView!!.setDefaultViewHolder(IconTreeItemHolder::class.java)
         containerView.addView(tView!!.view)
         tView?.expandAll()
+
+        val  btnCast: TextView = rootView.findViewById(R.id.btnCast)
+        btnCast.setOnClickListener {
+            var voteCast:MutableList<Any> = ArrayList()
+            var notCast = ArrayList<String>()
+            for (node in root.children){ // loops through category
+                val tViewMain: BaseNodeViewHolder<*> = node.getViewHolder()
+                val nodeviewMain = tViewMain.view
+                val tvValue = nodeviewMain.findViewById(R.id.node_value) as TextView
+                val arrerror = ArrayList<Boolean>()
+                for (candidatenode in node.children){//loops through children
+                    val tView: BaseNodeViewHolder<*> = candidatenode.getViewHolder()
+                    val nodeview = tView.view
+                    val nodecheckbox = nodeview.findViewById(R.id.voteCheckBox) as CheckBox
+                    val candidateValue = nodeview.findViewById(R.id.node_value) as TextView
+                    voteCast.add(arrayOf(tvValue.text, candidateValue.text  , nodecheckbox.isChecked))
+                    arrerror.add(nodecheckbox.isChecked)
+                }
+                if(arrerror.contains(true)){
+                }else{
+                    notCast.add("Please cast a vote for " + tvValue.text + " category !")
+                }
+            }
+           val errorOnCast = notCast.joinToString(separator = "\n")
+            if(errorOnCast.isEmpty() || errorOnCast == null){
+                val myToast = Toast.makeText(activity,"Successfully casted your vote!", Toast.LENGTH_SHORT)
+                myToast.show()
+                Log.d("Voting App", voteCast.toString()) //post cast vote here
+            }else{
+                val myToast = Toast.makeText(activity, errorOnCast, Toast.LENGTH_SHORT)
+                myToast.show()
+            }
+        }
+
 
 
 

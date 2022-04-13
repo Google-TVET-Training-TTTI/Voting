@@ -2,9 +2,11 @@ package com.ttti.voting.ui.holder;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import com.ttti.voting.R;
 import com.github.johnkil.print.PrintView;
@@ -34,6 +36,27 @@ public class IconTreeItemHolder extends TreeNode.BaseNodeViewHolder<IconTreeItem
         if(node.getLevel() == 1){
             voteCheckBox.setVisibility(View.INVISIBLE);
         }
+
+        //node operations here
+        voteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                TreeNode parentnode = node.getParent();
+                int count = parentnode.getChildren().size();
+                for (int i = 0; i < count ; i++){
+                    TreeNode childtreenode = parentnode.getChildren().get(i);
+                    TreeNode.BaseNodeViewHolder tView =  childtreenode.getViewHolder();
+                    View nodeview  = tView.getView();
+                    CheckBox nodecheckbox = (CheckBox)nodeview.findViewById(R.id.voteCheckBox);
+                    nodecheckbox.setChecked(false);
+                }
+                if(isChecked){
+                    voteCheckBox.setChecked(true);
+                }
+
+            }
+        });
+
 /*s
         view.findViewById(R.id.btn_addFolder).setOnClickListener(new View.OnClickListener() {
             @Override
