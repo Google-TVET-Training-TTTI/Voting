@@ -2,10 +2,11 @@
     <string name="app_name">Voting</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_title">Voting Application</string>
+    <string name="nav_header_subtitle">mugambi.m.mundia@gmail.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
+    <string name="action_logout">Log Out</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
@@ -19,16 +20,8 @@
         "Material is the metaphor.\n\n"
         "A material metaphor is the unifying theory of a rationalized space and a system of motion."
     </string>
-    <string name="menu_candidate_selection">Place your vote</string>
-
-
-
-
-
-
-
-
-
+    <string name="menu_vote">Place your vote</string>
+    <string name="menu_candidate">Candidate registration</string>
 
 
     <string name="ic_access_alarms">&#xe000;</string>
@@ -464,6 +457,10 @@
     <string name="ic_whatshot">&#xe1ae;</string>
     <string name="ic_wifi_tethering">&#xe1af;</string>
     <string name="ic_work">&#xe1b0;</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="none"></string>
 
 
 </resources>

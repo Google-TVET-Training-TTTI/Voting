@@ -2,13 +2,13 @@ package com.ttti.voting.ui.fragments
 
 
 
-import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.ApolloClient
@@ -18,21 +18,19 @@ import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.subscription.SubscriptionConnectionParams
 import com.apollographql.apollo.subscription.WebSocketSubscriptionTransport
 import com.coreict.models.GetVotesQuery
+import com.coreict.models.GetRegisteredVotedQuery
 import com.coreict.models.NewVoteSubscription
-import com.github.mikephil.charting.animation.ChartAnimator
 import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.AxisBase
-import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
-import com.github.mikephil.charting.renderer.PieChartRenderer
 import com.github.mikephil.charting.utils.ColorTemplate
-import com.github.mikephil.charting.utils.ViewPortHandler
 import com.ttti.voting.R
+import com.ttti.voting.ui.LoginActivity
 import okhttp3.OkHttpClient
 import org.json.JSONException
 import java.util.concurrent.TimeUnit
@@ -46,6 +44,8 @@ class DashboardFragment : Fragment() {
     private var chart: BarChart? = null
     private var piechart: PieChart? = null
     private var scoreList = ArrayList<Score>()
+    var userId: String? = null
+    var userName: String? = null
 
 
     fun createSubscriptionApolloClient(): ApolloClient {
@@ -85,6 +85,18 @@ class DashboardFragment : Fragment() {
         BASE_URL = getString(R.string.graphql_server)
         WS_URL = getString(R.string.graphql_server_ws)
 
+        val client = createSubscriptionApolloClient()
+
+        val labelName = root.findViewById(R.id.txtUserName) as TextView
+        var classLoginActivity = LoginActivity()
+
+        userId = classLoginActivity.getPref(context!!, "Pref_User_ID")
+        userName = classLoginActivity.getPref(context!!, "Pref_Username")
+
+        if(!userId.isNullOrEmpty()){
+            labelName.setText("Hi "+ userName)
+        }
+
         chart = root.findViewById(R.id.barchart) as BarChart
         chart?.axisLeft?.setDrawGridLines(true)
         chart?.xAxis?.setDrawGridLines(true)
@@ -102,46 +114,71 @@ class DashboardFragment : Fragment() {
         chart?.invalidate()
 
 
-
 //////////////pie chart
         piechart = root.findViewById(R.id.piechart) as PieChart
         piechart?.setUsePercentValues(true)
+        piechart?.description?.isEnabled = false
         val dataEntries = ArrayList<PieEntry>()
-        dataEntries.add(PieEntry(72f, "Registered Voters"))
-        dataEntries.add(PieEntry(26f, "Voted"))
 
-        val colors: ArrayList<Int> = ArrayList()
-        colors.add(Color.parseColor("#4DD0E1"))
-        colors.add(Color.parseColor("#FFF176"))
+        client.query(
+            GetRegisteredVotedQuery
+                .builder()
+                .build()
+        )
+            .enqueue(object : ApolloCall.Callback<GetRegisteredVotedQuery.Data>() {
+                override fun onFailure(e: ApolloException) {
+                    Log.e("DEBUG",e.message.toString())
+                }
+                override fun onResponse(response: Response<GetRegisteredVotedQuery.Data>) {
+                    getActivity()?.runOnUiThread {
+                        try {
+                            val voted : Float = response.data()?.data()?.voted()?.toFloat()!!
+                            val registered : Float = response.data()?.data()?.registered()?.toFloat()!!
 
+                            dataEntries.add(PieEntry(registered, "Registered Voters"))
+                            dataEntries.add(PieEntry(voted, "Voted"))
 
-        val dataSet = PieDataSet(dataEntries, "")
-        val data = PieData(dataSet)
-
-        // In Percentage
-        data.setValueFormatter(PercentFormatter())
-        dataSet.sliceSpace = 10f
-        dataSet.colors = colors
-        piechart?.data = data
-        data.setValueTextSize(15f)
-        piechart?.setExtraOffsets(5f, 10f, 5f, 5f)
-        piechart?.animateY(7000, Easing.EaseInOutQuad)
-
-        //create hole in center
-        piechart?.holeRadius = 58f
-        piechart?.transparentCircleRadius = 401f
-        piechart?.isDrawHoleEnabled = true
-        piechart?.setHoleColor(Color.WHITE)
-
-        //add text in center
-        piechart?.setDrawCenterText(true);
-        piechart?.centerText = "Voters"
-        piechart?.invalidate()
-
-/////////////////pie chart
+                            val colors: ArrayList<Int> = ArrayList()
+                            colors.add(Color.parseColor("#4DD0E1"))
+                            colors.add(Color.parseColor("#FFF176"))
 
 
-        val client = createSubscriptionApolloClient()
+                            val dataSet = PieDataSet(dataEntries, "")
+                            val data = PieData(dataSet)
+
+                            // In Percentage
+                            data.setValueFormatter(PercentFormatter())
+                            dataSet.sliceSpace = 10f
+                            dataSet.colors = colors
+                            piechart?.data = data
+                            data.setValueTextSize(15f)
+                            piechart?.setExtraOffsets(5f, 10f, 5f, 5f)
+                            piechart?.animateY(7000, Easing.EaseInOutQuad)
+
+                            //create hole in center
+                            piechart?.holeRadius = 58f
+                            piechart?.transparentCircleRadius = 401f
+                            piechart?.isDrawHoleEnabled = true
+                            piechart?.setHoleColor(Color.WHITE)
+
+                            //add text in center
+                            piechart?.setDrawCenterText(true);
+                            piechart?.centerText = "Voters"
+                            piechart?.invalidate()
+
+                           /////////////////pie chart
+
+
+
+                        } catch (e: JSONException) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            })
+
+
+
         val call = client.subscribe(
             NewVoteSubscription
             .builder()

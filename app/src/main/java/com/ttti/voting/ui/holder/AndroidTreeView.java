@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by Bogdan Melnychuk on 2/10/15.
+ * Created by Mugambi M. Mundia on 19/04/22.
  */
 public class AndroidTreeView {
     private static final String NODES_PATH_SEPARATOR = ";";

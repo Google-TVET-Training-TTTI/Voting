@@ -3,7 +3,7 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/mobile_navigation"
-            app:startDestination="@+id/nav_candidate_selection">
+            app:startDestination="@+id/nav_dashboard">
 
     <fragment
             android:id="@+id/nav_dashboard"
@@ -12,10 +12,17 @@
             tools:layout="@layout/fragment_dashboard"/>
 
     <fragment
-            android:id="@+id/nav_candidate_selection"
-            android:name="com.ttti.voting.ui.fragments.CandidateSelection"
-            android:label="@string/menu_candidate_selection"
-            tools:layout="@layout/fragment_candidate_selection"/>
+            android:id="@+id/nav_vote"
+            android:name="com.ttti.voting.ui.fragments.Vote"
+            android:label="@string/menu_vote"
+            tools:layout="@layout/fragment_vote"/>
+
+
+    <fragment
+            android:id="@+id/nav_candidate"
+            android:name="com.ttti.voting.ui.fragments.Candidate"
+            android:label="@string/menu_candidate"
+            tools:layout="@layout/fragment_vote"/>
 
 
     <fragment

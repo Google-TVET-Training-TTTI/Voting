@@ -1,43 +1,38 @@
 package com.ttti.voting.ui.holder;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Log;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import com.ttti.voting.R;
 import com.github.johnkil.print.PrintView;
+import com.ttti.voting.R;
+import com.ttti.voting.data.DataTree;
 
-public class IconTreeItemHolder extends TreeNode.BaseNodeViewHolder<IconTreeItemHolder.IconTreeItem> {
+public class CandidateItemHolder extends TreeNode.BaseNodeViewHolder<CandidateItemHolder.IconTreeItem> {
     private TextView tvValue;
-    private PrintView arrowView;
+    private TextView tvTag;
 
-    public IconTreeItemHolder(Context context) {
+    public CandidateItemHolder(Context context) {
         super(context);
     }
     @Override
     public View createNodeView(final TreeNode node, IconTreeItem value) {
         final LayoutInflater inflater = LayoutInflater.from(context);
-        final View view = inflater.inflate(R.layout.layout_icon_node, null, false);
+        final View view = inflater.inflate(R.layout.layout_candidate_node, null, false);
         tvValue = (TextView) view.findViewById(R.id.node_value);
-        tvValue.setText(value.text);
+        tvTag = (TextView) view.findViewById(R.id.node_tag);
+
+        tvValue.setText(value.dojo.getCategory());
+        tvValue.setTypeface(tvValue.getTypeface(), Typeface.BOLD);
+        tvTag.setText(value.dojo.getId());
 
         final PrintView iconView = (PrintView) view.findViewById(R.id.icon);
         iconView.setIconText(context.getResources().getString(value.icon));
-        arrowView = (PrintView) view.findViewById(R.id.arrow_icon);
         final CheckBox voteCheckBox = (CheckBox) view.findViewById(R.id.voteCheckBox);
 
-        if(node.getLevel() > 1){
-            arrowView.setIconText("");
-        }
-        if(node.getLevel() == 1){
-            voteCheckBox.setVisibility(View.INVISIBLE);
-        }
-
-        //node operations here
         voteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -56,43 +51,19 @@ public class IconTreeItemHolder extends TreeNode.BaseNodeViewHolder<IconTreeItem
 
             }
         });
-
-/*s
-        view.findViewById(R.id.btn_addFolder).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TreeNode newFolder = new TreeNode(new IconTreeItem(R.string.ic_folder, "New Folder"));
-                getTreeView().addNode(node, newFolder);
-            }
-        });
-
-        view.findViewById(R.id.btn_delete).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getTreeView().removeNode(node);
-            }
-        });
-
-        //if My computer
-        if (node.getLevel() == 1) {
-            view.findViewById(R.id.btn_delete).setVisibility(View.GONE);
-        }
-*/
         return view;
     }
 
     @Override
-    public void toggle(boolean active) {
-        arrowView.setIconText(context.getResources().getString(active ? R.string.ic_keyboard_arrow_down : R.string.ic_keyboard_arrow_right)); //temporary disabled
+    public void toggle(boolean active){
     }
 
     public static class IconTreeItem {
         public int icon;
-        public String text;
-
-        public IconTreeItem(int icon, String text) {
+        public DataTree dojo;
+        public IconTreeItem(int icon, DataTree dojo) {
             this.icon = icon;
-            this.text = text;
+            this.dojo = dojo;
         }
     }
 }

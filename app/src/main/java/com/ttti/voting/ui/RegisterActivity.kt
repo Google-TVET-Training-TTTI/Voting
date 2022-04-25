@@ -1,26 +1,37 @@
 package com.ttti.voting.ui
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
-import com.ttti.voting.R
 import com.coreict.models.CreateUserMutation
+import com.ttti.voting.R
 import okhttp3.OkHttpClient
 import org.json.JSONException
+import org.json.JSONObject
 
 class RegisterActivity : AppCompatActivity() {
 
     private var BASE_URL = ""
     private lateinit var client: ApolloClient
+    var sharedpreferences: SharedPreferences? = null
+
+    private fun setPref(con: Context, Key :String, Value :String ){
+        sharedpreferences = con.getSharedPreferences("Voting", MODE_PRIVATE)
+        var edit = sharedpreferences?.edit()
+        edit?.putString(Key, Value)
+        edit?.commit()
+    }
 
     private fun setUpApolloClient(): ApolloClient {
         val okHttp = OkHttpClient
@@ -70,14 +81,27 @@ class RegisterActivity : AppCompatActivity() {
                                     val myToast = Toast.makeText(applicationContext, response.data()?.data()?.toString() , Toast.LENGTH_SHORT)
                                     myToast.show()
                                 }else{
-                                    val myToast = Toast.makeText(applicationContext,"INSERTED", Toast.LENGTH_SHORT)
-                                    myToast.show()
-                                }
-                              /*
-                                    val intent = Intent(applicationContext,GraphQLDBActivity::class.java).apply {
+
+                                   //var obj = response.data()?.data()?.__typename()?.elementAt(1)
+
+                                    //Log.d("Voting App",obj.toString())
+
+                                    /*setPref(this@RegisterActivity, "Pref_User_ID", response.data().)
+                                    setPref(this@RegisterActivity, "Pref_Username",response.data()?.data()?.nodes()?.get(0)!!.firstName() + " "+ response.data()?.data()?.nodes()?.get(0)!!.lastName())
+                                    setPref(this@RegisterActivity, "Pref_Phone", response.data()?.data()?.nodes()?.get(0)!!.phoneNumber())
+                                    response.data()?.data()?.nodes()?.get(0)!!.email()
+                                        ?.let { it1 -> setPref(this@RegisterActivity, "Pref_Phone", it1) }*/
+
+
+                                    //val myToast = Toast.makeText(applicationContext,"INSERTED", Toast.LENGTH_SHORT)
+                                    //myToast.show()
+
+                                    //add to preference then perform login
+                                    val intent = Intent(applicationContext,LoginActivity::class.java).apply {
                                     }
                                     startActivity(intent)
-                                */
+                                }
+
                             } catch (e: JSONException) {
                                 e.printStackTrace()
                             }

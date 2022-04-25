@@ -11,7 +11,7 @@
                     android:id="@+id/mainLayout"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:background="@drawable/dashboard_banner"
+                    android:background="@drawable/background1"
                     android:orientation="vertical">
 
         <ScrollView
@@ -54,7 +54,7 @@
 
 
                             <TextView
-                                    android:id="@+id/txtGamerName"
+                                    android:id="@+id/txtUserName"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_marginTop="0dp"
@@ -96,7 +96,7 @@
                                     android:layout_weight="10"
                                     android:gravity="center"
                                     android:paddingLeft="10dp"
-                                    android:text="Registered voters vs voted"
+                                    android:text="Registered vs voted in %"
                                     android:textColor="@android:color/background_dark"
                                     android:textColorLink="@android:color/white"
                                     android:textSize="15dp"
@@ -150,6 +150,7 @@
                                 <HorizontalScrollView
                                         android:layout_width="fill_parent"
                                         android:layout_height="fill_parent"
+                                        android:id="@+id/hsview"
                                         android:fillViewport="true">
 
                                     <com.github.mikephil.charting.charts.BarChart
